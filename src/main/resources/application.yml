@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: si-notification-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:seniorinsight}
+    username: ${DB_USERNAME:seniorinsight}
+    password: ${DB_PASSWORD:seniorinsight}
+  flyway:
+    enabled: true
+    schemas: notification
+    default-schema: notification
+    locations: classpath:db/migration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    username: ${RABBITMQ_USERNAME:seniorinsight}
+    password: ${RABBITMQ_PASSWORD:seniorinsight}
+    listener:
+      simple:
+        acknowledge-mode: manual
+        default-requeue-rejected: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+notification:
+  rabbitmq:
+    exchange: ${NOTIFICATION_RABBITMQ_EXCHANGE:si.events}
+    queue: ${NOTIFICATION_RABBITMQ_QUEUE:notification.q}
+    routing-key: ${NOTIFICATION_RABBITMQ_ROUTING_KEY:sos.acionado}
+    dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
+    dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
+    dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
