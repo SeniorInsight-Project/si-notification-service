@@ -1,0 +1,12 @@
+com\seniorinsight\notification\NotificationServiceApplication.class
+com\seniorinsight\notification\adapter\out\persistence\NotificacaoJpaEntity.class
+com\seniorinsight\notification\adapter\out\persistence\NotificacaoRepositoryAdapter.class
+com\seniorinsight\notification\domain\port\NotificacaoRepository.class
+com\seniorinsight\notification\adapter\in\rabbit\SosEventListener.class
+com\seniorinsight\notification\application\ProcessarEventoSosUseCase.class
+com\seniorinsight\notification\domain\model\EventoSos.class
+com\seniorinsight\notification\config\ApplicationConfig.class
+com\seniorinsight\notification\config\RabbitConfig.class
+com\seniorinsight\notification\adapter\out\persistence\SpringDataNotificacaoRepository.class
+com\seniorinsight\notification\adapter\in\rabbit\SosEventPayload.class
+com\seniorinsight\notification\domain\model\Notificacao.class
