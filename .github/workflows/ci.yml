@@ -1,0 +1,35 @@
+name: CI
+
+# Compila e roda todos os testes (unitários, ArchUnit e integração com Postgres via Testcontainers)
+# em todo PR para develop/main e em todo push na develop. O job "testes" deve ser marcado como
+# check obrigatório nas regras das branches develop e main.
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build e testes
+        run: mvn -B -ntp verify

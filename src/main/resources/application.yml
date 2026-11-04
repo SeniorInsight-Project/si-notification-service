@@ -3,23 +3,21 @@ spring:
     name: si-notification-service
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:seniorinsight}
-    username: ${DB_USERNAME:seniorinsight}
-    password: ${DB_PASSWORD:seniorinsight}
+    # Sem valor padrão de propósito: em produção as credenciais vêm do ambiente / secrets do Swarm.
+    # Para rodar localmente, ative o perfil "local" (SPRING_PROFILES_ACTIVE=local).
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   flyway:
     enabled: true
     schemas: notification
     default-schema: notification
     locations: classpath:db/migration
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     virtual-host: ${RABBITMQ_VHOST:/}
-    username: ${RABBITMQ_USERNAME:seniorinsight}
-    password: ${RABBITMQ_PASSWORD:seniorinsight}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
     listener:
       simple:
         acknowledge-mode: manual
@@ -45,3 +43,20 @@ notification:
     dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
     dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
     dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
+    # Espera antes de devolver à fila uma mensagem que falhou por erro transitório (ex.: banco fora do ar).
+    retry-delay: ${NOTIFICATION_RABBITMQ_RETRY_DELAY:5s}
+    # Intervalo (ms) da verificação da fila de dead-letter.
+    dead-letter-check-interval-ms: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_CHECK_INTERVAL_MS:60000}
+
+---
+# Perfil de desenvolvimento: mesmas credenciais padrão do compose.yaml do si-infra.
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    username: ${DB_USERNAME:seniorinsight}
+    password: ${DB_PASSWORD:seniorinsight}
+  rabbitmq:
+    username: ${RABBITMQ_USERNAME:seniorinsight}
+    password: ${RABBITMQ_PASSWORD:seniorinsight}
