@@ -1,7 +1,6 @@
 package com.seniorinsight.notification.adapter.in.web;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import com.seniorinsight.notification.application.RegistrarTokenPushUseCase;
 import com.seniorinsight.notification.application.RemoverTokenPushUseCase;
@@ -32,22 +31,14 @@ public class PushTokenController {
     @PutMapping("/v1/push-tokens")
     public TokenPushResponse registrar(@AuthenticationPrincipal Jwt jwt, @RequestBody RegistrarTokenPushRequest request) {
         DispositivoPush dispositivo = registrar.registrar(
-                usuarioId(jwt), request.identificadorAparelho(), request.token(), request.plataforma());
+                UsuarioDoJwt.id(jwt), request.identificadorAparelho(), request.token(), request.plataforma());
         return new TokenPushResponse(dispositivo.identificadorAparelho(), dispositivo.plataforma(), dispositivo.atualizadoEm());
     }
 
     @DeleteMapping("/v1/push-tokens/{identificadorAparelho}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@AuthenticationPrincipal Jwt jwt, @PathVariable String identificadorAparelho) {
-        remover.remover(usuarioId(jwt), identificadorAparelho);
-    }
-
-    private static UUID usuarioId(Jwt jwt) {
-        try {
-            return UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException | NullPointerException exception) {
-            throw new IllegalArgumentException("O sub do token não é um identificador de usuário válido.");
-        }
+        remover.remover(UsuarioDoJwt.id(jwt), identificadorAparelho);
     }
 
     public record RegistrarTokenPushRequest(String token, String identificadorAparelho, Plataforma plataforma) {

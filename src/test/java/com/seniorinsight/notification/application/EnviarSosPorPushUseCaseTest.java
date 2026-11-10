@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.seniorinsight.notification.domain.model.Alerta;
 import com.seniorinsight.notification.domain.model.Destinatario;
 import com.seniorinsight.notification.domain.model.DispositivoPush;
 import com.seniorinsight.notification.domain.model.Entrega;
@@ -22,12 +23,15 @@ import com.seniorinsight.notification.domain.model.Notificacao;
 import com.seniorinsight.notification.domain.model.Plataforma;
 import com.seniorinsight.notification.domain.model.ResultadoPush;
 import com.seniorinsight.notification.domain.model.StatusEntrega;
+import com.seniorinsight.notification.domain.model.TipoAlerta;
+import com.seniorinsight.notification.domain.port.AlertaRepository;
 import com.seniorinsight.notification.domain.port.DispositivoPushRepository;
 import com.seniorinsight.notification.domain.port.EntregaRepository;
 import com.seniorinsight.notification.domain.port.NotificacaoRepository;
 import com.seniorinsight.notification.domain.port.PushSender;
 import com.seniorinsight.notification.domain.port.RedeProtecaoClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class EnviarSosPorPushUseCaseTest {
 
@@ -38,8 +42,9 @@ class EnviarSosPorPushUseCaseTest {
     private final DispositivoPushRepository dispositivos = mock(DispositivoPushRepository.class);
     private final EntregaRepository entregas = mock(EntregaRepository.class);
     private final PushSender pushSender = mock(PushSender.class);
+    private final AlertaRepository alertas = mock(AlertaRepository.class);
     private final EnviarSosPorPushUseCase useCase = new EnviarSosPorPushUseCase(
-            notificacoes, rede, dispositivos, entregas, pushSender, Clock.fixed(AGORA, ZoneOffset.UTC));
+            notificacoes, rede, dispositivos, entregas, pushSender, alertas, Clock.fixed(AGORA, ZoneOffset.UTC));
 
     private final UUID eventoId = UUID.randomUUID();
     private final UUID idosoId = UUID.randomUUID();
@@ -53,6 +58,24 @@ class EnviarSosPorPushUseCaseTest {
     private void quandoHaNotificacaoEEntregaNova() {
         when(notificacoes.buscarPorEventoId(eventoId)).thenReturn(Optional.of(notificacao));
         when(entregas.registrarSeAusente(any())).thenReturn(true);
+    }
+
+    @Test
+    void gravaUmAlertaSosParaOEnvio() {
+        quandoHaNotificacaoEEntregaNova();
+        when(rede.listarRede(idosoId)).thenReturn(List.of());
+
+        useCase.enviar(eventoId);
+
+        ArgumentCaptor<Alerta> captor = ArgumentCaptor.forClass(Alerta.class);
+        verify(alertas).registrarSeAusente(captor.capture());
+        Alerta alerta = captor.getValue();
+        assertEquals(eventoId, alerta.origemId());
+        assertEquals(idosoId, alerta.idosoId());
+        assertEquals(TipoAlerta.SOS, alerta.tipo());
+        assertEquals("Alerta de emergência", alerta.titulo());
+        assertEquals("SOS de Maria.", alerta.detalhe());
+        assertEquals(AGORA, alerta.geradoEm());
     }
 
     @Test

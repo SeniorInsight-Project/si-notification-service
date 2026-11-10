@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
+import com.seniorinsight.notification.domain.model.Alerta;
 import com.seniorinsight.notification.domain.model.CanalEntrega;
 import com.seniorinsight.notification.domain.model.Destinatario;
 import com.seniorinsight.notification.domain.model.DispositivoPush;
@@ -11,6 +12,8 @@ import com.seniorinsight.notification.domain.model.Entrega;
 import com.seniorinsight.notification.domain.model.Notificacao;
 import com.seniorinsight.notification.domain.model.ResultadoPush;
 import com.seniorinsight.notification.domain.model.StatusEntrega;
+import com.seniorinsight.notification.domain.model.TipoAlerta;
+import com.seniorinsight.notification.domain.port.AlertaRepository;
 import com.seniorinsight.notification.domain.port.DispositivoPushRepository;
 import com.seniorinsight.notification.domain.port.EntregaRepository;
 import com.seniorinsight.notification.domain.port.NotificacaoRepository;
@@ -25,6 +28,7 @@ public class EnviarSosPorPushUseCase {
     private final DispositivoPushRepository dispositivos;
     private final EntregaRepository entregas;
     private final PushSender pushSender;
+    private final AlertaRepository alertas;
     private final Clock clock;
 
     public EnviarSosPorPushUseCase(
@@ -33,12 +37,14 @@ public class EnviarSosPorPushUseCase {
             DispositivoPushRepository dispositivos,
             EntregaRepository entregas,
             PushSender pushSender,
+            AlertaRepository alertas,
             Clock clock) {
         this.notificacoes = notificacoes;
         this.rede = rede;
         this.dispositivos = dispositivos;
         this.entregas = entregas;
         this.pushSender = pushSender;
+        this.alertas = alertas;
         this.clock = clock;
     }
 
@@ -46,6 +52,11 @@ public class EnviarSosPorPushUseCase {
     public int enviar(UUID eventoId) {
         Notificacao notificacao = notificacoes.buscarPorEventoId(eventoId)
                 .orElseThrow(() -> new IllegalArgumentException("Notificação do evento " + eventoId + " não encontrada."));
+
+        // Central de alertas: um alerta por SOS, gravado de forma idempotente (reprocessar não duplica).
+        alertas.registrarSeAusente(Alerta.novo(
+                notificacao.idEvento(), notificacao.idosoId(), TipoAlerta.SOS,
+                notificacao.titulo(), notificacao.mensagem(), notificacao.ocorridoEm()));
 
         List<Destinatario> destinatarios = rede.listarRede(notificacao.idosoId()).stream()
                 .filter(destinatario -> destinatario.usuarioId() != null)

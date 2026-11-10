@@ -2,7 +2,11 @@ package com.seniorinsight.notification.adapter.in.web;
 
 import java.time.Instant;
 
+import com.seniorinsight.notification.application.AcessoNegadoException;
+import com.seniorinsight.notification.application.AlertaNaoEncontradoException;
 import com.seniorinsight.notification.application.TokenPushNaoEncontradoException;
+import com.seniorinsight.notification.domain.model.PrazoAvaliacaoVencidoException;
+import com.seniorinsight.notification.domain.port.RedeProtecaoIndisponivelException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +26,24 @@ public class TratadorDeErros {
         return resposta(HttpStatus.BAD_REQUEST, mensagem, request);
     }
 
-    @ExceptionHandler(TokenPushNaoEncontradoException.class)
-    ResponseEntity<Erro> naoEncontrado(TokenPushNaoEncontradoException exception, HttpServletRequest request) {
+    @ExceptionHandler({TokenPushNaoEncontradoException.class, AlertaNaoEncontradoException.class})
+    ResponseEntity<Erro> naoEncontrado(RuntimeException exception, HttpServletRequest request) {
         return resposta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    ResponseEntity<Erro> acessoNegado(AcessoNegadoException exception, HttpServletRequest request) {
+        return resposta(HttpStatus.FORBIDDEN, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(PrazoAvaliacaoVencidoException.class)
+    ResponseEntity<Erro> prazoVencido(PrazoAvaliacaoVencidoException exception, HttpServletRequest request) {
+        return resposta(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(RedeProtecaoIndisponivelException.class)
+    ResponseEntity<Erro> redeIndisponivel(RedeProtecaoIndisponivelException exception, HttpServletRequest request) {
+        return resposta(HttpStatus.SERVICE_UNAVAILABLE, "Não foi possível confirmar a rede do idoso. Tente novamente.", request);
     }
 
     private static ResponseEntity<Erro> resposta(HttpStatus status, String mensagem, HttpServletRequest request) {

@@ -6,11 +6,14 @@ import java.time.Duration;
 import com.seniorinsight.notification.adapter.out.http.CareRedeProtecaoClient;
 import com.seniorinsight.notification.adapter.out.http.ExpoPushSender;
 import com.seniorinsight.notification.adapter.out.mail.SmtpEmailSender;
+import com.seniorinsight.notification.application.AvaliarAlertaUseCase;
 import com.seniorinsight.notification.application.EnviarSosPorPushUseCase;
+import com.seniorinsight.notification.application.ListarAlertasUseCase;
 import com.seniorinsight.notification.application.ProcessarEventoSosUseCase;
 import com.seniorinsight.notification.application.RegistrarTokenPushUseCase;
 import com.seniorinsight.notification.application.RemoverTokenPushUseCase;
 import com.seniorinsight.notification.application.ReenviarSosSemLeituraUseCase;
+import com.seniorinsight.notification.domain.port.AlertaRepository;
 import com.seniorinsight.notification.domain.port.DispositivoPushRepository;
 import com.seniorinsight.notification.domain.port.EmailSender;
 import com.seniorinsight.notification.domain.port.EntregaRepository;
@@ -62,8 +65,19 @@ public class ApplicationConfig {
             DispositivoPushRepository dispositivos,
             EntregaRepository entregas,
             PushSender pushSender,
+            AlertaRepository alertas,
             Clock clock) {
-        return new EnviarSosPorPushUseCase(notificacoes, rede, dispositivos, entregas, pushSender, clock);
+        return new EnviarSosPorPushUseCase(notificacoes, rede, dispositivos, entregas, pushSender, alertas, clock);
+    }
+
+    @Bean
+    ListarAlertasUseCase listarAlertasUseCase(AlertaRepository alertas, RedeProtecaoClient rede) {
+        return new ListarAlertasUseCase(alertas, rede);
+    }
+
+    @Bean
+    AvaliarAlertaUseCase avaliarAlertaUseCase(AlertaRepository alertas, RedeProtecaoClient rede, Clock clock) {
+        return new AvaliarAlertaUseCase(alertas, rede, clock);
     }
 
     @Bean
