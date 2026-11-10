@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,12 +23,25 @@ class ProcessarEventoSosUseCaseTest {
     void registraEventoUmaUnicaVez() {
         Set<UUID> eventosRegistrados = new HashSet<>();
         Set<Notificacao> notificacoes = new HashSet<>();
-        NotificacaoRepository repository = notificacao -> {
-            if (!eventosRegistrados.add(notificacao.idEvento())) {
-                return false;
+        NotificacaoRepository repository = new NotificacaoRepository() {
+            @Override
+            public boolean registrarSeAusente(Notificacao notificacao) {
+                if (!eventosRegistrados.add(notificacao.idEvento())) {
+                    return false;
+                }
+                notificacoes.add(notificacao);
+                return true;
             }
-            notificacoes.add(notificacao);
-            return true;
+
+            @Override
+            public Optional<Notificacao> buscarPorEventoId(UUID eventoId) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<Notificacao> buscarPorId(UUID id) {
+                return Optional.empty();
+            }
         };
         ProcessarEventoSosUseCase useCase = new ProcessarEventoSosUseCase(repository);
         EventoSos evento = eventoValido();
@@ -39,7 +54,7 @@ class ProcessarEventoSosUseCaseTest {
 
     @Test
     void rejeitaEventoSemIdentificador() {
-        ProcessarEventoSosUseCase useCase = new ProcessarEventoSosUseCase(notificacao -> true);
+        ProcessarEventoSosUseCase useCase = new ProcessarEventoSosUseCase(mock(NotificacaoRepository.class));
         EventoSos evento = new EventoSos(null, UUID.randomUUID(), "Idoso", null, null, null, null, Instant.now());
 
         assertThrows(IllegalArgumentException.class, () -> useCase.processar(evento));
