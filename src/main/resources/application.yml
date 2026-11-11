@@ -14,6 +14,11 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -26,6 +31,7 @@ spring:
         default-requeue-rejected: false
 
 server:
+  forward-headers-strategy: framework
   port: ${SERVER_PORT:8080}
 
 management:
@@ -41,7 +47,19 @@ notification:
   rabbitmq:
     exchange: ${NOTIFICATION_RABBITMQ_EXCHANGE:si.events}
     queue: ${NOTIFICATION_RABBITMQ_QUEUE:notification.q}
-    routing-key: ${NOTIFICATION_RABBITMQ_ROUTING_KEY:sos.acionado}
+    routing-key: ${NOTIFICATION_RABBITMQ_ROUTING_KEY:sos.updated}
     dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
     dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
     dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
+  care:
+    base-url: ${CARE_BASE_URL:http://care-service:8080}
+    rede-cache-ttl: ${NOTIFICATION_CARE_REDE_CACHE_TTL:5m}
+  expo:
+    url: ${EXPO_PUSH_URL:https://exp.host/--/api/v2/push/send}
+    access-token: ${EXPO_ACCESS_TOKEN:}
+  sos:
+    # RN-002: sem leitura neste prazo, reenvia o push e manda e-mail.
+    prazo-leitura: ${NOTIFICATION_SOS_PRAZO_LEITURA:60s}
+    intervalo-verificacao: ${NOTIFICATION_SOS_INTERVALO_VERIFICACAO:5s}
+  email:
+    remetente: ${NOTIFICATION_EMAIL_REMETENTE:nao-responda@seniorinsight.app}

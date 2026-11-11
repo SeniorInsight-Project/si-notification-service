@@ -13,8 +13,15 @@ public record SosEventPayload(
         Double longitude,
         Integer nivelBateria,
         String observacao,
-        Instant acionadoEm
+        Instant acionadoEm,
+        String status
 ) {
+
+    static final String STATUS_DISPARADO = "DISPARADO";
+
+    public boolean disparo() {
+        return STATUS_DISPARADO.equals(status);
+    }
 
     public EventoSos toDomain() {
         return new EventoSos(alarmeId, idosoId, nomeIdoso, latitude, longitude, nivelBateria, observacao, acionadoEm);
