@@ -7,6 +7,7 @@ import com.seniorinsight.notification.adapter.out.http.CareRedeProtecaoClient;
 import com.seniorinsight.notification.adapter.out.http.ExpoPushSender;
 import com.seniorinsight.notification.adapter.out.mail.SmtpEmailSender;
 import com.seniorinsight.notification.application.AvaliarAlertaUseCase;
+import com.seniorinsight.notification.application.ConfirmarLeituraNotificacaoUseCase;
 import com.seniorinsight.notification.application.EnviarSosPorPushUseCase;
 import com.seniorinsight.notification.application.ListarAlertasUseCase;
 import com.seniorinsight.notification.application.ProcessarEventoSosUseCase;
@@ -51,6 +52,11 @@ public class ApplicationConfig {
     @Bean
     RegistrarTokenPushUseCase registrarTokenPushUseCase(DispositivoPushRepository repository) {
         return new RegistrarTokenPushUseCase(repository);
+    }
+
+    @Bean
+    ConfirmarLeituraNotificacaoUseCase confirmarLeituraNotificacaoUseCase(EntregaRepository entregas, Clock clock) {
+        return new ConfirmarLeituraNotificacaoUseCase(entregas, clock);
     }
 
     @Bean
