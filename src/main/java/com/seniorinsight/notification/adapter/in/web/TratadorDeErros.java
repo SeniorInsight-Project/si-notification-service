@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.seniorinsight.notification.application.AcessoNegadoException;
 import com.seniorinsight.notification.application.AlertaNaoEncontradoException;
+import com.seniorinsight.notification.application.NotificacaoNaoEncontradaException;
 import com.seniorinsight.notification.application.TokenPushNaoEncontradoException;
 import com.seniorinsight.notification.domain.model.PrazoAvaliacaoVencidoException;
 import com.seniorinsight.notification.domain.port.RedeProtecaoIndisponivelException;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** Erros no formato {@code Erro} do contrato: timestamp, status, error, message e path. */
 @RestControllerAdvice
@@ -26,7 +28,13 @@ public class TratadorDeErros {
         return resposta(HttpStatus.BAD_REQUEST, mensagem, request);
     }
 
-    @ExceptionHandler({TokenPushNaoEncontradoException.class, AlertaNaoEncontradoException.class})
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<Erro> parametroInvalido(MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
+        return resposta(HttpStatus.BAD_REQUEST, "Parâmetro '" + exception.getName() + "' inválido.", request);
+    }
+
+    @ExceptionHandler({TokenPushNaoEncontradoException.class, AlertaNaoEncontradoException.class,
+            NotificacaoNaoEncontradaException.class})
     ResponseEntity<Erro> naoEncontrado(RuntimeException exception, HttpServletRequest request) {
         return resposta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
     }

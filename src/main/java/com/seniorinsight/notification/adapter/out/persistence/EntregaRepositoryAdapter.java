@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.seniorinsight.notification.domain.model.CanalEntrega;
@@ -41,8 +42,30 @@ public class EntregaRepositoryAdapter implements EntregaRepository {
 
     @Override
     @Transactional
+    public Optional<Instant> confirmarLeitura(UUID notificacaoId, UUID destinatarioId, Instant lidaEm) {
+        jdbc.sql("""
+                UPDATE notification.entrega SET status = 'LIDA', lida_em = :lidaEm
+                WHERE notificacao_id = :notificacaoId AND destinatario_id = :destinatarioId AND lida_em IS NULL
+                """)
+                .param("lidaEm", OffsetDateTime.ofInstant(lidaEm, ZoneOffset.UTC))
+                .param("notificacaoId", notificacaoId)
+                .param("destinatarioId", destinatarioId)
+                .update();
+        return jdbc.sql("""
+                SELECT MIN(lida_em) FROM notification.entrega
+                WHERE notificacao_id = :notificacaoId AND destinatario_id = :destinatarioId
+                """)
+                .param("notificacaoId", notificacaoId)
+                .param("destinatarioId", destinatarioId)
+                .query(OffsetDateTime.class)
+                .optional()
+                .map(OffsetDateTime::toInstant);
+    }
+
+    @Override
+    @Transactional
     public void atualizarStatus(Entrega entrega, StatusEntrega status, Instant enviadoEm) {
-        jdbc.sql("UPDATE notification.entrega SET status = :status, enviado_em = :enviadoEm WHERE id = :id")
+        jdbc.sql("UPDATE notification.entrega SET status = :status, enviado_em = :enviadoEm WHERE id = :id AND status <> 'LIDA'")
                 .param("status", status.name())
                 .param("enviadoEm", enviadoEm == null ? null : OffsetDateTime.ofInstant(enviadoEm, ZoneOffset.UTC))
                 .param("id", entrega.id())
