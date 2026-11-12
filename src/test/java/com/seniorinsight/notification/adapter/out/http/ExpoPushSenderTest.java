@@ -43,6 +43,26 @@ class ExpoPushSenderTest {
     }
 
     @Test
+    void avisoComumNaoUsaPrioridadeNemCanalDeEmergencia() {
+        servidor.expect(requestTo(URL))
+                .andExpect(jsonPath("$.to").value(TOKEN))
+                .andExpect(jsonPath("$.title").value("Exclusão de conta"))
+                .andExpect(jsonPath("$.body").value("Maria pediu a exclusão."))
+                .andExpect(jsonPath("$.priority").doesNotExist())
+                .andExpect(jsonPath("$.channelId").doesNotExist())
+                .andExpect(jsonPath("$.data").doesNotExist())
+                .andRespond(withSuccess("{\"data\":[{\"status\":\"ok\",\"id\":\"1\"}]}", MediaType.APPLICATION_JSON));
+
+        assertEquals(ResultadoPush.ENVIADO, sender.enviarAviso(TOKEN, "Exclusão de conta", "Maria pediu a exclusão."));
+        servidor.verify();
+    }
+
+    @Test
+    void avisoParaTokenForaDoFormatoDoExpoViraTokenInvalido() {
+        assertEquals(ResultadoPush.TOKEN_INVALIDO, sender.enviarAviso("abc", "t", "m"));
+    }
+
+    @Test
     void tokenNaoRegistradoViraTokenInvalido() {
         servidor.expect(requestTo(URL)).andRespond(withSuccess(
                 "{\"data\":[{\"status\":\"error\",\"message\":\"x\",\"details\":{\"error\":\"DeviceNotRegistered\"}}]}",
