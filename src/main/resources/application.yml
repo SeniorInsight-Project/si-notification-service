@@ -47,7 +47,8 @@ notification:
   rabbitmq:
     exchange: ${NOTIFICATION_RABBITMQ_EXCHANGE:si.events}
     queue: ${NOTIFICATION_RABBITMQ_QUEUE:notification.q}
-    routing-key: ${NOTIFICATION_RABBITMQ_ROUTING_KEY:sos.updated}
+    # Lista separada por vírgula: cada chave liga a fila à exchange.
+    routing-keys: ${NOTIFICATION_RABBITMQ_ROUTING_KEYS:sos.updated,lgpd.erasure.requested}
     dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
     dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
     dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
