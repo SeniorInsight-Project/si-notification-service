@@ -98,4 +98,12 @@ public class AlertaRepositoryAdapter implements AlertaRepository {
     private static OffsetDateTime utc(Instant instante) {
         return OffsetDateTime.ofInstant(instante, ZoneOffset.UTC);
     }
+
+    @Override
+    @Transactional
+    public void removerDoIdoso(UUID idosoId) {
+        jdbc.sql("DELETE FROM notification.alerta WHERE idoso_id = :idosoId")
+                .param("idosoId", idosoId)
+                .update();
+    }
 }

@@ -31,10 +31,6 @@ public class ExpoPushSender implements PushSender {
 
     @Override
     public ResultadoPush enviarSos(String token, Notificacao notificacao) {
-        if (!tokenExpo(token)) {
-            log.warn("Token de push fora do formato do Expo; envio ignorado.");
-            return ResultadoPush.TOKEN_INVALIDO;
-        }
         Map<String, Object> corpo = Map.of(
                 "to", token,
                 "title", notificacao.titulo(),
@@ -46,6 +42,19 @@ public class ExpoPushSender implements PushSender {
                         "tipo", notificacao.tipo(),
                         "notificacaoId", notificacao.id().toString(),
                         "idosoId", notificacao.idosoId().toString()));
+        return enviar(token, corpo);
+    }
+
+    @Override
+    public ResultadoPush enviarAviso(String token, String titulo, String mensagem) {
+        return enviar(token, Map.of("to", token, "title", titulo, "body", mensagem, "sound", "default"));
+    }
+
+    private ResultadoPush enviar(String token, Map<String, Object> corpo) {
+        if (!tokenExpo(token)) {
+            log.warn("Token de push fora do formato do Expo; envio ignorado.");
+            return ResultadoPush.TOKEN_INVALIDO;
+        }
         try {
             RespostaExpo resposta = restClient.post().body(corpo).retrieve().body(RespostaExpo.class);
             return interpretar(resposta);

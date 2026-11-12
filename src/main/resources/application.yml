@@ -25,6 +25,8 @@ spring:
     virtual-host: ${RABBITMQ_VHOST:/}
     username: ${RABBITMQ_USERNAME:seniorinsight}
     password: ${RABBITMQ_PASSWORD:seniorinsight}
+    # O relay da outbox espera o confirm do broker antes de marcar o evento como publicado.
+    publisher-confirm-type: correlated
     listener:
       simple:
         acknowledge-mode: manual
@@ -47,7 +49,8 @@ notification:
   rabbitmq:
     exchange: ${NOTIFICATION_RABBITMQ_EXCHANGE:si.events}
     queue: ${NOTIFICATION_RABBITMQ_QUEUE:notification.q}
-    routing-key: ${NOTIFICATION_RABBITMQ_ROUTING_KEY:sos.updated}
+    # Lista separada por vírgula: cada chave liga a fila à exchange.
+    routing-keys: ${NOTIFICATION_RABBITMQ_ROUTING_KEYS:sos.updated,lgpd.erasure.requested}
     dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
     dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
     dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
@@ -61,5 +64,19 @@ notification:
     # RN-002: sem leitura neste prazo, reenvia o push e manda e-mail.
     prazo-leitura: ${NOTIFICATION_SOS_PRAZO_LEITURA:60s}
     intervalo-verificacao: ${NOTIFICATION_SOS_INTERVALO_VERIFICACAO:5s}
+  exclusao:
+    # HU-022: o care responde 404 até processar o pedido; depois do limite a exclusão segue sem o aviso.
+    aviso-rede:
+      tentativas: ${NOTIFICATION_EXCLUSAO_AVISO_TENTATIVAS:10}
+      intervalo: ${NOTIFICATION_EXCLUSAO_AVISO_INTERVALO:2s}
+    # Falha temporária (banco, por exemplo) repete a exclusão; no limite a mensagem vai para a notification.dlq.
+    processamento:
+      tentativas: ${NOTIFICATION_EXCLUSAO_TENTATIVAS:3}
+      intervalo: ${NOTIFICATION_EXCLUSAO_INTERVALO:5s}
+  outbox:
+    relay:
+      intervalo: ${NOTIFICATION_OUTBOX_RELAY_INTERVALO:1s}
+      tamanho-lote: ${NOTIFICATION_OUTBOX_RELAY_TAMANHO_LOTE:100}
+      timeout-confirmacao: ${NOTIFICATION_OUTBOX_RELAY_TIMEOUT_CONFIRMACAO:5s}
   email:
     remetente: ${NOTIFICATION_EMAIL_REMETENTE:nao-responda@seniorinsight.app}

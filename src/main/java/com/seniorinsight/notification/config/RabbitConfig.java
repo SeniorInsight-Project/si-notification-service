@@ -1,7 +1,10 @@
 package com.seniorinsight.notification.config;
 
+import java.util.List;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Declarables;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
@@ -40,12 +43,18 @@ public class RabbitConfig {
         return QueueBuilder.durable(queue).build();
     }
 
+    /** Uma ligação por routing key de {@code notification.rabbitmq.routing-keys}, na mesma fila. */
     @Bean
-    Binding notificationBinding(
+    Declarables notificationBindings(
             @Qualifier("notificationQueue") Queue notificationQueue,
             TopicExchange eventosExchange,
-            @Value("${notification.rabbitmq.routing-key}") String routingKey) {
-        return BindingBuilder.bind(notificationQueue).to(eventosExchange).with(routingKey);
+            @Value("${notification.rabbitmq.routing-keys}") List<String> routingKeys) {
+        List<Binding> bindings = routingKeys.stream()
+                .map(String::trim)
+                .filter(chave -> !chave.isEmpty())
+                .map(chave -> BindingBuilder.bind(notificationQueue).to(eventosExchange).with(chave))
+                .toList();
+        return new Declarables(bindings);
     }
 
     @Bean

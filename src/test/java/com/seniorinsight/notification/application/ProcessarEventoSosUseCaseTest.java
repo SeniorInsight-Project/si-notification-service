@@ -42,6 +42,10 @@ class ProcessarEventoSosUseCaseTest {
             public Optional<Notificacao> buscarPorId(UUID id) {
                 return Optional.empty();
             }
+
+            @Override
+            public void removerDoIdoso(UUID idosoId) {
+            }
         };
         ProcessarEventoSosUseCase useCase = new ProcessarEventoSosUseCase(repository);
         EventoSos evento = eventoValido();
