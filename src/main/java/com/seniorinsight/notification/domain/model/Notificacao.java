@@ -10,6 +10,11 @@ public record Notificacao(
         UUID idosoId,
         String titulo,
         String mensagem,
-        Instant ocorridoEm
+        Instant ocorridoEm,
+        Instant programadaPara
 ) {
+
+    public Notificacao(UUID id, UUID idEvento, String tipo, UUID idosoId, String titulo, String mensagem, Instant ocorridoEm) {
+        this(id, idEvento, tipo, idosoId, titulo, mensagem, ocorridoEm, ocorridoEm);
+    }
 }

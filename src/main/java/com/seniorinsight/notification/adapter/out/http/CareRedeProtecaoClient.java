@@ -27,10 +27,10 @@ public class CareRedeProtecaoClient implements RedeProtecaoClient {
     private record Entrada(List<Destinatario> rede, Instant expiraEm) {
     }
 
-    record MembroRede(UUID usuarioId, String nomeCompleto, String email) {
+    record MembroRede(UUID usuarioId, String nomeCompleto, String email, String papelAcesso) {
 
         Destinatario paraDestinatario() {
-            return new Destinatario(usuarioId, nomeCompleto, email);
+            return new Destinatario(usuarioId, nomeCompleto, email, papelAcesso);
         }
     }
 

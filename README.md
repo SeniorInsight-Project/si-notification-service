@@ -33,3 +33,15 @@ O protocolo fica em `exclusao_protocolo`: reentrega do mesmo protocolo não repe
 | `EXPO_ACCESS_TOKEN` | Token de acesso do Expo Push (opcional) |
 | `NOTIFICATION_SOS_PRAZO_LEITURA` | Prazo sem leitura antes do reenvio (padrão `60s`) |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | SMTP do e-mail de escalonamento; sem host, o e-mail não é enviado |
+
+## Perda e retorno do sinal (HU-028)
+
+A fila consome `telemetry.signal.lost` e `telemetry.signal.recovered`, no envelope CloudEvents do si-telemetry-service (validado e deduplicado pelo `id`). O alerta é direcionado apenas ao familiar com `papelAcesso: ADMINISTRADOR` na rede do idoso. O push usa o canal padrão; se não houver aparelho válido ou o Expo falhar, o serviço tenta e-mail para o administrador. O fluxo não consulta assinatura ou plano.
+
+Entre 22:00 e 07:00, o evento fica persistido para entrega às 07:00, inclusive após reinício.
+
+| Variável | Uso |
+| --- | --- |
+| `NOTIFICATION_RABBITMQ_ROUTING_KEYS` | Routing keys separadas por vírgula (padrão inclui SOS e os eventos de sinal) |
+| `NOTIFICATION_SINAL_FUSO_HORARIO` | Fuso usado pela janela de silêncio (padrão `America/Sao_Paulo`) |
+| `NOTIFICATION_SINAL_INTERVALO_VERIFICACAO` | Frequência de verificação das entregas agendadas (padrão `30s`) |

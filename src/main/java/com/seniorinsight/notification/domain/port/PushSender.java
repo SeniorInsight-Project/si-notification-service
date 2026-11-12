@@ -10,4 +10,7 @@ public interface PushSender {
 
     /** Envia um aviso comum, sem a prioridade nem o canal de emergência do SOS. */
     ResultadoPush enviarAviso(String token, String titulo, String mensagem);
+
+    /** Envia alerta técnico em horário e canal padrão do aparelho. */
+    ResultadoPush enviarAlerta(String token, Notificacao notificacao);
 }

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-/** Envio pelo Expo Push: prioridade alta e canal {@code sos} no Android. */
+/** Envio pelo Expo Push: SOS usa prioridade alta/canal sos; alertas técnicos usam o canal padrão. */
 public class ExpoPushSender implements PushSender {
 
     private static final Logger log = LoggerFactory.getLogger(ExpoPushSender.class);
@@ -31,12 +31,21 @@ public class ExpoPushSender implements PushSender {
 
     @Override
     public ResultadoPush enviarSos(String token, Notificacao notificacao) {
+        return enviar(token, notificacao, "high", CANAL_SOS);
+    }
+
+    @Override
+    public ResultadoPush enviarAlerta(String token, Notificacao notificacao) {
+        return enviar(token, notificacao, "default", "default");
+    }
+
+    private ResultadoPush enviar(String token, Notificacao notificacao, String prioridade, String canal) {
         Map<String, Object> corpo = Map.of(
                 "to", token,
                 "title", notificacao.titulo(),
                 "body", notificacao.mensagem(),
-                "priority", "high",
-                "channelId", CANAL_SOS,
+                "priority", prioridade,
+                "channelId", canal,
                 "sound", "default",
                 "data", Map.of(
                         "tipo", notificacao.tipo(),

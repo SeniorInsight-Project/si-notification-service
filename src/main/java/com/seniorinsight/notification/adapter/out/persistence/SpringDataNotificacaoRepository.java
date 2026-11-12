@@ -13,9 +13,9 @@ public interface SpringDataNotificacaoRepository extends JpaRepository<Notificac
     @Modifying
     @Query(value = """
             INSERT INTO notification.notificacao
-                (id, evento_id, tipo, idoso_id, titulo, mensagem, ocorrido_em)
+                (id, evento_id, tipo, idoso_id, titulo, mensagem, ocorrido_em, programada_para)
             VALUES
-                (:id, :eventoId, :tipo, :idosoId, :titulo, :mensagem, :ocorridoEm)
+                (:id, :eventoId, :tipo, :idosoId, :titulo, :mensagem, :ocorridoEm, :programadaPara)
             ON CONFLICT (evento_id) DO NOTHING
             """, nativeQuery = true)
     int inserirSeAusente(
@@ -25,6 +25,7 @@ public interface SpringDataNotificacaoRepository extends JpaRepository<Notificac
             @Param("idosoId") UUID idosoId,
             @Param("titulo") String titulo,
             @Param("mensagem") String mensagem,
-            @Param("ocorridoEm") Instant ocorridoEm
+            @Param("ocorridoEm") Instant ocorridoEm,
+            @Param("programadaPara") Instant programadaPara
     );
 }

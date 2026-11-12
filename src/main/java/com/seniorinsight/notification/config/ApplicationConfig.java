@@ -2,6 +2,7 @@ package com.seniorinsight.notification.config;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.ZoneId;
 
 import com.seniorinsight.notification.adapter.out.http.CareRedeProtecaoClient;
 import com.seniorinsight.notification.adapter.out.http.ExpoPushSender;
@@ -14,6 +15,7 @@ import com.seniorinsight.notification.application.ExcluirTitularUseCase;
 import com.seniorinsight.notification.application.ListarAlertasUseCase;
 import com.seniorinsight.notification.application.Pausa;
 import com.seniorinsight.notification.application.ProcessarEventoSosUseCase;
+import com.seniorinsight.notification.application.ProcessarEventoSinalUseCase;
 import com.seniorinsight.notification.application.RegistrarTokenPushUseCase;
 import com.seniorinsight.notification.application.RemoverTokenPushUseCase;
 import com.seniorinsight.notification.application.ReenviarSosSemLeituraUseCase;
@@ -55,6 +57,21 @@ public class ApplicationConfig {
     @Bean
     ProcessarEventoSosUseCase processarEventoSosUseCase(NotificacaoRepository notificacaoRepository) {
         return new ProcessarEventoSosUseCase(notificacaoRepository);
+    }
+
+    @Bean
+    ProcessarEventoSinalUseCase processarEventoSinalUseCase(
+            NotificacaoRepository notificacoes,
+            RedeProtecaoClient rede,
+            DispositivoPushRepository dispositivos,
+            EntregaRepository entregas,
+            PushSender pushSender,
+            EmailSender emailSender,
+            AlertaRepository alertas,
+            Clock clock,
+            @Value("${notification.sinal.fuso-horario}") ZoneId fusoHorario) {
+        return new ProcessarEventoSinalUseCase(
+                notificacoes, rede, dispositivos, entregas, pushSender, emailSender, alertas, clock, fusoHorario);
     }
 
     @Bean
