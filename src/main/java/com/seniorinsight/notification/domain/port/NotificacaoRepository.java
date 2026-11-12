@@ -12,4 +12,7 @@ public interface NotificacaoRepository {
     Optional<Notificacao> buscarPorEventoId(UUID eventoId);
 
     Optional<Notificacao> buscarPorId(UUID id);
+
+    /** Apaga as notificações do idoso; as entregas delas saem em cascata. */
+    void removerDoIdoso(UUID idosoId);
 }

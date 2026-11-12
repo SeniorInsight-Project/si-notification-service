@@ -63,4 +63,12 @@ public class NotificacaoRepositoryAdapter implements NotificacaoRepository {
                 rs.getObject("ocorrido_em", java.time.OffsetDateTime.class).toInstant()
         );
     }
+
+    @Override
+    @Transactional
+    public void removerDoIdoso(UUID idosoId) {
+        jdbc.sql("DELETE FROM notification.notificacao WHERE idoso_id = :idosoId")
+                .param("idosoId", idosoId)
+                .update();
+    }
 }

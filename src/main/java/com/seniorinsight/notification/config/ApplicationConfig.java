@@ -9,18 +9,26 @@ import com.seniorinsight.notification.adapter.out.mail.SmtpEmailSender;
 import com.seniorinsight.notification.application.AvaliarAlertaUseCase;
 import com.seniorinsight.notification.application.ConfirmarLeituraNotificacaoUseCase;
 import com.seniorinsight.notification.application.EnviarSosPorPushUseCase;
+import com.seniorinsight.notification.application.AvisarRedeExclusaoUseCase;
+import com.seniorinsight.notification.application.ExcluirTitularUseCase;
 import com.seniorinsight.notification.application.ListarAlertasUseCase;
+import com.seniorinsight.notification.application.Pausa;
 import com.seniorinsight.notification.application.ProcessarEventoSosUseCase;
 import com.seniorinsight.notification.application.RegistrarTokenPushUseCase;
 import com.seniorinsight.notification.application.RemoverTokenPushUseCase;
 import com.seniorinsight.notification.application.ReenviarSosSemLeituraUseCase;
+import com.seniorinsight.notification.application.Retentativa;
 import com.seniorinsight.notification.domain.port.AlertaRepository;
 import com.seniorinsight.notification.domain.port.DispositivoPushRepository;
 import com.seniorinsight.notification.domain.port.EmailSender;
 import com.seniorinsight.notification.domain.port.EntregaRepository;
 import com.seniorinsight.notification.domain.port.NotificacaoRepository;
+import com.seniorinsight.notification.domain.port.ProtocoloExclusaoRepository;
+import com.seniorinsight.notification.domain.port.PublicadorExclusaoConcluida;
 import com.seniorinsight.notification.domain.port.PushSender;
 import com.seniorinsight.notification.domain.port.RedeProtecaoClient;
+import com.seniorinsight.notification.domain.port.TitularExcluidoRepository;
+import com.seniorinsight.notification.domain.port.Transacao;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
@@ -50,8 +58,36 @@ public class ApplicationConfig {
     }
 
     @Bean
-    RegistrarTokenPushUseCase registrarTokenPushUseCase(DispositivoPushRepository repository) {
-        return new RegistrarTokenPushUseCase(repository);
+    RegistrarTokenPushUseCase registrarTokenPushUseCase(
+            DispositivoPushRepository repository, TitularExcluidoRepository titulares, Transacao transacao) {
+        return new RegistrarTokenPushUseCase(repository, titulares, transacao);
+    }
+
+    @Bean
+    AvisarRedeExclusaoUseCase avisarRedeExclusaoUseCase(
+            RedeProtecaoClient rede,
+            DispositivoPushRepository dispositivos,
+            PushSender pushSender,
+            EmailSender emailSender,
+            @Value("${notification.exclusao.aviso-rede.tentativas}") int tentativas,
+            @Value("${notification.exclusao.aviso-rede.intervalo}") Duration intervalo) {
+        return new AvisarRedeExclusaoUseCase(
+                rede, dispositivos, pushSender, emailSender, new Retentativa(tentativas, intervalo, pausaDaThread()));
+    }
+
+    @Bean
+    ExcluirTitularUseCase excluirTitularUseCase(
+            ProtocoloExclusaoRepository protocolos,
+            TitularExcluidoRepository titulares,
+            AvisarRedeExclusaoUseCase avisarRede,
+            Transacao transacao,
+            DispositivoPushRepository dispositivos,
+            EntregaRepository entregas,
+            NotificacaoRepository notificacoes,
+            AlertaRepository alertas,
+            PublicadorExclusaoConcluida publicador) {
+        return new ExcluirTitularUseCase(
+                protocolos, titulares, avisarRede, transacao, dispositivos, entregas, notificacoes, alertas, publicador);
     }
 
     @Bean
@@ -120,6 +156,17 @@ public class ApplicationConfig {
             ObjectProvider<JavaMailSender> mailSender,
             @Value("${notification.email.remetente}") String remetente) {
         return new SmtpEmailSender(mailSender, remetente);
+    }
+
+    /** Pausa a thread do consumidor entre as tentativas; interrompida, restaura o sinal e segue. */
+    private static Pausa pausaDaThread() {
+        return intervalo -> {
+            try {
+                Thread.sleep(intervalo);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
+        };
     }
 
     private static RestClient restClient(String baseUrl, String bearer) {

@@ -89,4 +89,12 @@ public class DispositivoPushRepositoryAdapter implements DispositivoPushReposito
                 .param("token", token)
                 .update();
     }
+
+    @Override
+    @Transactional
+    public void removerTodos(UUID usuarioId) {
+        jdbc.sql("DELETE FROM notification.dispositivo_push WHERE usuario_id = :usuarioId")
+                .param("usuarioId", usuarioId)
+                .update();
+    }
 }

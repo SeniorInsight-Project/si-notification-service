@@ -16,4 +16,7 @@ public interface DispositivoPushRepository {
     List<DispositivoPush> listarAtivos(UUID usuarioId);
 
     void desativarPorToken(String token);
+
+    /** Apaga todos os tokens do usuário, ativos ou não. */
+    void removerTodos(UUID usuarioId);
 }

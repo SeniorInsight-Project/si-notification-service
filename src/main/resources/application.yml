@@ -62,5 +62,10 @@ notification:
     # RN-002: sem leitura neste prazo, reenvia o push e manda e-mail.
     prazo-leitura: ${NOTIFICATION_SOS_PRAZO_LEITURA:60s}
     intervalo-verificacao: ${NOTIFICATION_SOS_INTERVALO_VERIFICACAO:5s}
+  exclusao:
+    # HU-022: o care responde 404 até processar o pedido; depois do limite a exclusão segue sem o aviso.
+    aviso-rede:
+      tentativas: ${NOTIFICATION_EXCLUSAO_AVISO_TENTATIVAS:10}
+      intervalo: ${NOTIFICATION_EXCLUSAO_AVISO_INTERVALO:2s}
   email:
     remetente: ${NOTIFICATION_EMAIL_REMETENTE:nao-responda@seniorinsight.app}
