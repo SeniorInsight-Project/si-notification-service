@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seniorinsight.notification.ConfiguracaoDeIntegracao;
+import com.seniorinsight.notification.PostgresIntegracaoTest;
 import com.seniorinsight.notification.domain.model.Alerta;
 import com.seniorinsight.notification.domain.model.CanalEntrega;
 import com.seniorinsight.notification.domain.model.DispositivoPush;
@@ -27,42 +27,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /** Roda as migrações e o SQL da exclusão num PostgreSQL de verdade. Cada teste faz commit; a limpeza é no início. */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Import({DispositivoPushRepositoryAdapter.class, EntregaRepositoryAdapter.class, NotificacaoRepositoryAdapter.class,
         AlertaRepositoryAdapter.class, ProtocoloExclusaoRepositoryAdapter.class, TitularExcluidoRepositoryAdapter.class,
-        OutboxPublicadorAdapter.class, TransacaoSpring.class, ExclusaoPersistenciaIntegracaoTest.Config.class})
-class ExclusaoPersistenciaIntegracaoTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
-
-    @org.springframework.boot.test.context.TestConfiguration
-    static class Config {
-
-        @org.springframework.context.annotation.Bean
-        Clock clock() {
-            return Clock.fixed(Instant.parse("2026-11-12T15:30:00Z"), ZoneOffset.UTC);
-        }
-
-        @org.springframework.context.annotation.Bean
-        ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
-    }
+        OutboxPublicadorAdapter.class, TransacaoSpring.class, ConfiguracaoDeIntegracao.class})
+class ExclusaoPersistenciaIntegracaoTest extends PostgresIntegracaoTest {
 
     @Autowired JdbcClient jdbc;
     @Autowired DispositivoPushRepositoryAdapter dispositivos;
@@ -185,7 +162,7 @@ class ExclusaoPersistenciaIntegracaoTest {
         assertEquals("1.0", envelope.get("specversion").asText());
         assertEquals("/notification-service", envelope.get("source").asText());
         assertEquals("lgpd.erasure.completed", envelope.get("type").asText());
-        assertEquals("2026-11-12T15:30:00Z", envelope.get("time").asText());
+        assertEquals(ConfiguracaoDeIntegracao.AGORA.toString(), envelope.get("time").asText());
         assertEquals("application/json", envelope.get("datacontenttype").asText());
         assertEquals("https://raw.githubusercontent.com/SeniorInsight-Project/si-contracts/main/events/lgpd.erasure.completed.v1.json",
                 envelope.get("dataschema").asText());

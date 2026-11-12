@@ -25,6 +25,8 @@ spring:
     virtual-host: ${RABBITMQ_VHOST:/}
     username: ${RABBITMQ_USERNAME:seniorinsight}
     password: ${RABBITMQ_PASSWORD:seniorinsight}
+    # O relay da outbox espera o confirm do broker antes de marcar o evento como publicado.
+    publisher-confirm-type: correlated
     listener:
       simple:
         acknowledge-mode: manual
@@ -67,5 +69,10 @@ notification:
     aviso-rede:
       tentativas: ${NOTIFICATION_EXCLUSAO_AVISO_TENTATIVAS:10}
       intervalo: ${NOTIFICATION_EXCLUSAO_AVISO_INTERVALO:2s}
+  outbox:
+    relay:
+      intervalo: ${NOTIFICATION_OUTBOX_RELAY_INTERVALO:1s}
+      tamanho-lote: ${NOTIFICATION_OUTBOX_RELAY_TAMANHO_LOTE:100}
+      timeout-confirmacao: ${NOTIFICATION_OUTBOX_RELAY_TIMEOUT_CONFIRMACAO:5s}
   email:
     remetente: ${NOTIFICATION_EMAIL_REMETENTE:nao-responda@seniorinsight.app}
