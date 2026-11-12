@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 
-class SosEventListenerTest {
+class EventoListenerTest {
 
     private static final String ALARME = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -28,7 +28,7 @@ class SosEventListenerTest {
     private final ProcessarEventoSosUseCase processar = mock(ProcessarEventoSosUseCase.class);
     private final EnviarSosPorPushUseCase enviar = mock(EnviarSosPorPushUseCase.class);
     private final Channel channel = mock(Channel.class);
-    private final SosEventListener listener = new SosEventListener(mapper, processar, enviar);
+    private final EventoListener listener = new EventoListener(mapper, processar, enviar, mock(TratadorPedidoExclusao.class));
 
     private Message evento(String type, String status) {
         String json = """

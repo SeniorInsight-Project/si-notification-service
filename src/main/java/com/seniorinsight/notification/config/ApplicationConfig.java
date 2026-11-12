@@ -69,10 +69,11 @@ public class ApplicationConfig {
             DispositivoPushRepository dispositivos,
             PushSender pushSender,
             EmailSender emailSender,
+            Pausa pausa,
             @Value("${notification.exclusao.aviso-rede.tentativas}") int tentativas,
             @Value("${notification.exclusao.aviso-rede.intervalo}") Duration intervalo) {
         return new AvisarRedeExclusaoUseCase(
-                rede, dispositivos, pushSender, emailSender, new Retentativa(tentativas, intervalo, pausaDaThread()));
+                rede, dispositivos, pushSender, emailSender, new Retentativa(tentativas, intervalo, pausa));
     }
 
     @Bean
@@ -159,7 +160,8 @@ public class ApplicationConfig {
     }
 
     /** Pausa a thread do consumidor entre as tentativas; interrompida, restaura o sinal e segue. */
-    private static Pausa pausaDaThread() {
+    @Bean
+    Pausa pausa() {
         return intervalo -> {
             try {
                 Thread.sleep(intervalo);

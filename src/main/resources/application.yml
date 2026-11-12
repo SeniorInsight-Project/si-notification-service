@@ -69,6 +69,10 @@ notification:
     aviso-rede:
       tentativas: ${NOTIFICATION_EXCLUSAO_AVISO_TENTATIVAS:10}
       intervalo: ${NOTIFICATION_EXCLUSAO_AVISO_INTERVALO:2s}
+    # Falha temporária (banco, por exemplo) repete a exclusão; no limite a mensagem vai para a notification.dlq.
+    processamento:
+      tentativas: ${NOTIFICATION_EXCLUSAO_TENTATIVAS:3}
+      intervalo: ${NOTIFICATION_EXCLUSAO_INTERVALO:5s}
   outbox:
     relay:
       intervalo: ${NOTIFICATION_OUTBOX_RELAY_INTERVALO:1s}
