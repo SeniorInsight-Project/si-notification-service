@@ -1,5 +1,9 @@
 package com.seniorinsight.notification.adapter.out.persistence;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class NotificacaoRepositoryAdapter implements NotificacaoRepository {
 
-    private static final String COLUNAS = "id, evento_id, tipo, idoso_id, titulo, mensagem, ocorrido_em";
+    private static final String COLUNAS = "id, evento_id, tipo, idoso_id, titulo, mensagem, ocorrido_em, programada_para";
 
     private final SpringDataNotificacaoRepository repository;
     private final JdbcClient jdbc;
@@ -32,7 +36,8 @@ public class NotificacaoRepositoryAdapter implements NotificacaoRepository {
                 notificacao.idosoId(),
                 notificacao.titulo(),
                 notificacao.mensagem(),
-                notificacao.ocorridoEm()
+                notificacao.ocorridoEm(),
+                notificacao.programadaPara()
         ) == 1;
     }
 
@@ -52,6 +57,28 @@ public class NotificacaoRepositoryAdapter implements NotificacaoRepository {
                 .optional();
     }
 
+    @Override
+    public List<Notificacao> buscarAgendadasAte(Instant instante, int limite) {
+        return jdbc.sql("""
+                SELECT %s FROM notification.notificacao
+                WHERE tipo = 'TECNICO' AND processada_em IS NULL AND programada_para <= :instante
+                ORDER BY programada_para LIMIT :limite
+                """.formatted(COLUNAS))
+                .param("instante", OffsetDateTime.ofInstant(instante, ZoneOffset.UTC))
+                .param("limite", limite)
+                .query(this::mapear)
+                .list();
+    }
+
+    @Override
+    @Transactional
+    public void marcarAgendamentoProcessado(UUID notificacaoId, Instant processadoEm) {
+        jdbc.sql("UPDATE notification.notificacao SET processada_em = :processadoEm WHERE id = :id")
+                .param("processadoEm", OffsetDateTime.ofInstant(processadoEm, ZoneOffset.UTC))
+                .param("id", notificacaoId)
+                .update();
+    }
+
     private Notificacao mapear(java.sql.ResultSet rs, int linha) throws java.sql.SQLException {
         return new Notificacao(
                 rs.getObject("id", UUID.class),
@@ -60,7 +87,8 @@ public class NotificacaoRepositoryAdapter implements NotificacaoRepository {
                 rs.getObject("idoso_id", UUID.class),
                 rs.getString("titulo"),
                 rs.getString("mensagem"),
-                rs.getObject("ocorrido_em", java.time.OffsetDateTime.class).toInstant()
+                rs.getObject("ocorrido_em", OffsetDateTime.class).toInstant(),
+                rs.getObject("programada_para", OffsetDateTime.class).toInstant()
         );
     }
 
