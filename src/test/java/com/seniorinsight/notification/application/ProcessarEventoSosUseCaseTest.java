@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +42,20 @@ class ProcessarEventoSosUseCaseTest {
             @Override
             public Optional<Notificacao> buscarPorId(UUID id) {
                 return Optional.empty();
+            }
+
+            @Override
+            public void removerDoIdoso(UUID idosoId) {
+            }
+
+            @Override
+            public List<Notificacao> buscarAgendadasAte(Instant instante, int limite) {
+                return List.of();
+            }
+
+            @Override
+            public void marcarAgendamentoProcessado(UUID notificacaoId, Instant processadoEm) {
+                // Nenhum agendamento é criado pelo fluxo SOS.
             }
         };
         ProcessarEventoSosUseCase useCase = new ProcessarEventoSosUseCase(repository);

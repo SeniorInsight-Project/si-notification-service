@@ -17,4 +17,6 @@ public interface AlertaRepository {
     Optional<Alerta> buscarPorId(UUID idosoId, UUID alertaId);
 
     void salvarAvaliacao(Alerta alerta);
+
+    void removerDoIdoso(UUID idosoId);
 }

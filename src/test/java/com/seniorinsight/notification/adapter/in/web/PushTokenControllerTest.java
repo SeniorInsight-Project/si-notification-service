@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import com.seniorinsight.notification.application.RegistrarTokenPushUseCase;
 import com.seniorinsight.notification.application.RemoverTokenPushUseCase;
+import com.seniorinsight.notification.application.TitularExcluidoException;
 import com.seniorinsight.notification.application.TokenPushNaoEncontradoException;
 import com.seniorinsight.notification.domain.model.DispositivoPush;
 import com.seniorinsight.notification.domain.model.Plataforma;
@@ -91,6 +92,17 @@ class PushTokenControllerTest {
                         .contentType(MediaType.APPLICATION_JSON).content(CORPO))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("token inválido"));
+    }
+
+    @Test
+    void recusaOTokenDeQuemPediuAExclusaoDaConta() throws Exception {
+        when(registrar.registrar(USUARIO, "pixel-7", "ExponentPushToken[abc]", Plataforma.ANDROID))
+                .thenThrow(new TitularExcluidoException());
+
+        mockMvc.perform(put("/v1/push-tokens").with(jwt().jwt(j -> j.subject(USUARIO.toString())))
+                        .contentType(MediaType.APPLICATION_JSON).content(CORPO))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
     }
 
     @Test

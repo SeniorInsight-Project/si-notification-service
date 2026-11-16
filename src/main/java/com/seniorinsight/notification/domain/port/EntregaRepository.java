@@ -28,4 +28,7 @@ public interface EntregaRepository {
      * {@code enviadasAte} e ainda sem leitura, marcando-as como reenviadas.
      */
     List<Entrega> reivindicarSemLeitura(Instant enviadasAte, int limite);
+
+    /** Apaga as entregas em que o usuário é o destinatário. */
+    void removerDoDestinatario(UUID destinatarioId);
 }

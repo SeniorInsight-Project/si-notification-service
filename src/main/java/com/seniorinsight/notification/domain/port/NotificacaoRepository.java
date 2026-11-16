@@ -1,5 +1,7 @@
 package com.seniorinsight.notification.domain.port;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +14,11 @@ public interface NotificacaoRepository {
     Optional<Notificacao> buscarPorEventoId(UUID eventoId);
 
     Optional<Notificacao> buscarPorId(UUID id);
+
+    /** Apaga as notificações do idoso; as entregas delas saem em cascata. */
+    void removerDoIdoso(UUID idosoId);
+
+    List<Notificacao> buscarAgendadasAte(Instant instante, int limite);
+
+    void marcarAgendamentoProcessado(UUID notificacaoId, Instant processadoEm);
 }

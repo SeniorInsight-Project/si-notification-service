@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-/** Envio pelo Expo Push: prioridade alta e canal {@code sos} no Android. */
+/** Envio pelo Expo Push: SOS usa prioridade alta/canal sos; alertas técnicos usam o canal padrão. */
 public class ExpoPushSender implements PushSender {
 
     private static final Logger log = LoggerFactory.getLogger(ExpoPushSender.class);
@@ -31,21 +31,39 @@ public class ExpoPushSender implements PushSender {
 
     @Override
     public ResultadoPush enviarSos(String token, Notificacao notificacao) {
-        if (!tokenExpo(token)) {
-            log.warn("Token de push fora do formato do Expo; envio ignorado.");
-            return ResultadoPush.TOKEN_INVALIDO;
-        }
+        return enviar(token, notificacao, "high", CANAL_SOS);
+    }
+
+    @Override
+    public ResultadoPush enviarAlerta(String token, Notificacao notificacao) {
+        return enviar(token, notificacao, "default", "default");
+    }
+
+    private ResultadoPush enviar(String token, Notificacao notificacao, String prioridade, String canal) {
         Map<String, Object> corpo = Map.of(
                 "to", token,
                 "title", notificacao.titulo(),
                 "body", notificacao.mensagem(),
-                "priority", "high",
-                "channelId", CANAL_SOS,
+                "priority", prioridade,
+                "channelId", canal,
                 "sound", "default",
                 "data", Map.of(
                         "tipo", notificacao.tipo(),
                         "notificacaoId", notificacao.id().toString(),
                         "idosoId", notificacao.idosoId().toString()));
+        return enviar(token, corpo);
+    }
+
+    @Override
+    public ResultadoPush enviarAviso(String token, String titulo, String mensagem) {
+        return enviar(token, Map.of("to", token, "title", titulo, "body", mensagem, "sound", "default"));
+    }
+
+    private ResultadoPush enviar(String token, Map<String, Object> corpo) {
+        if (!tokenExpo(token)) {
+            log.warn("Token de push fora do formato do Expo; envio ignorado.");
+            return ResultadoPush.TOKEN_INVALIDO;
+        }
         try {
             RespostaExpo resposta = restClient.post().body(corpo).retrieve().body(RespostaExpo.class);
             return interpretar(resposta);

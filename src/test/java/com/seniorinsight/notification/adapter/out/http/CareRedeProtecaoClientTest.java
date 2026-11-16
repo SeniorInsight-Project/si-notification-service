@@ -4,15 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withResourceNotFound;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.seniorinsight.notification.domain.model.RedeExclusao;
 import com.seniorinsight.notification.domain.port.RedeProtecaoIndisponivelException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -75,5 +79,45 @@ class CareRedeProtecaoClientTest {
         servidor.expect(requestTo("http://care/internal/idosos/" + idoso + "/rede")).andRespond(withServerError());
 
         assertThrows(RedeProtecaoIndisponivelException.class, () -> client.listarRede(idoso));
+    }
+
+    private static final String URL_EXCLUSAO = "http://care/internal/exclusoes/%s/rede";
+
+    @Test
+    void buscaARedeDaExclusaoPeloProtocolo() {
+        UUID protocolo = UUID.randomUUID();
+        servidor.expect(requestTo(URL_EXCLUSAO.formatted(protocolo)))
+                .andRespond(withSuccess("""
+                        {"protocolo":"%s","primeiroNomeIdoso":"Sebastiana",
+                         "membros":[{"usuarioId":"%s","nomeCompleto":"Ana Lima","email":"ana@exemplo.com"}]}
+                        """.formatted(protocolo, familiar), MediaType.APPLICATION_JSON));
+
+        RedeExclusao rede = client.buscarRedeDaExclusao(protocolo).orElseThrow();
+
+        assertEquals("Sebastiana", rede.primeiroNomeIdoso());
+        assertEquals(familiar, rede.membros().get(0).usuarioId());
+        assertEquals("ana@exemplo.com", rede.membros().get(0).email());
+    }
+
+    @Test
+    void respostaDe404SignificaQueOCareAindaNaoProcessou() {
+        UUID protocolo = UUID.randomUUID();
+        servidor.expect(requestTo(URL_EXCLUSAO.formatted(protocolo))).andRespond(withResourceNotFound());
+        servidor.expect(requestTo(URL_EXCLUSAO.formatted(protocolo)))
+                .andRespond(withSuccess("{\"primeiroNomeIdoso\":\"Maria\",\"membros\":[]}", MediaType.APPLICATION_JSON));
+
+        assertEquals(Optional.empty(), client.buscarRedeDaExclusao(protocolo));
+        assertEquals(0, client.buscarRedeDaExclusao(protocolo).orElseThrow().membros().size());
+        servidor.verify();
+    }
+
+    @Test
+    void errosDiferentesDe404ViramRedeIndisponivel() {
+        UUID protocolo = UUID.randomUUID();
+        servidor.expect(requestTo(URL_EXCLUSAO.formatted(protocolo))).andRespond(withUnauthorizedRequest());
+        servidor.expect(requestTo(URL_EXCLUSAO.formatted(protocolo))).andRespond(withServerError());
+
+        assertThrows(RedeProtecaoIndisponivelException.class, () -> client.buscarRedeDaExclusao(protocolo));
+        assertThrows(RedeProtecaoIndisponivelException.class, () -> client.buscarRedeDaExclusao(protocolo));
     }
 }

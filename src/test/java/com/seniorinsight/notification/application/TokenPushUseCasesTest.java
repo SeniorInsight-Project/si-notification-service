@@ -13,18 +13,24 @@ import java.util.UUID;
 import com.seniorinsight.notification.domain.model.DispositivoPush;
 import com.seniorinsight.notification.domain.model.Plataforma;
 import com.seniorinsight.notification.domain.port.DispositivoPushRepository;
+import com.seniorinsight.notification.domain.port.TitularExcluidoRepository;
 import org.junit.jupiter.api.Test;
 
 class TokenPushUseCasesTest {
 
     private final DispositivoPushRepository repository = mock(DispositivoPushRepository.class);
+    private final TitularExcluidoRepository titulares = mock(TitularExcluidoRepository.class);
     private final UUID usuario = UUID.randomUUID();
+
+    private RegistrarTokenPushUseCase registrarUseCase() {
+        return new RegistrarTokenPushUseCase(repository, titulares, new TransacaoDireta());
+    }
 
     @Test
     void registraAssociandoOTokenAoUsuarioEAoAparelho() {
         when(repository.salvar(any())).thenAnswer(invocacao -> invocacao.getArgument(0));
 
-        DispositivoPush salvo = new RegistrarTokenPushUseCase(repository)
+        DispositivoPush salvo = registrarUseCase()
                 .registrar(usuario, "pixel-7", "ExponentPushToken[x]", Plataforma.ANDROID);
 
         assertEquals(usuario, salvo.usuarioId());
@@ -34,7 +40,7 @@ class TokenPushUseCasesTest {
 
     @Test
     void rejeitaDadosInvalidosSemTocarNoBanco() {
-        RegistrarTokenPushUseCase useCase = new RegistrarTokenPushUseCase(repository);
+        RegistrarTokenPushUseCase useCase = registrarUseCase();
 
         assertThrows(IllegalArgumentException.class, () -> useCase.registrar(usuario, " ", "t", Plataforma.IOS));
         assertThrows(IllegalArgumentException.class, () -> useCase.registrar(usuario, "a", "", Plataforma.IOS));

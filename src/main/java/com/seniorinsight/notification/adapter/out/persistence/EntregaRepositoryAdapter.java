@@ -98,4 +98,12 @@ public class EntregaRepositoryAdapter implements EntregaRepository {
                         rs.getObject("enviado_em", OffsetDateTime.class).toInstant()))
                 .list();
     }
+
+    @Override
+    @Transactional
+    public void removerDoDestinatario(UUID destinatarioId) {
+        jdbc.sql("DELETE FROM notification.entrega WHERE destinatario_id = :destinatarioId")
+                .param("destinatarioId", destinatarioId)
+                .update();
+    }
 }
