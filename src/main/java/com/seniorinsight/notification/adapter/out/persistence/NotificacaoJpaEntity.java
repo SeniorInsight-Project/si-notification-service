@@ -34,6 +34,12 @@ public class NotificacaoJpaEntity {
     @Column(name = "ocorrido_em", nullable = false)
     private Instant ocorridoEm;
 
+    @Column(name = "programada_para", nullable = false)
+    private Instant programadaPara;
+
+    @Column(name = "processada_em")
+    private Instant processadaEm;
+
     protected NotificacaoJpaEntity() {
     }
 
@@ -45,5 +51,6 @@ public class NotificacaoJpaEntity {
         this.titulo = notificacao.titulo();
         this.mensagem = notificacao.mensagem();
         this.ocorridoEm = notificacao.ocorridoEm();
+        this.programadaPara = notificacao.programadaPara();
     }
 }

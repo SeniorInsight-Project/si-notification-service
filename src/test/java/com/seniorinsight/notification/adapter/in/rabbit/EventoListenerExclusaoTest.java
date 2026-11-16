@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.rabbitmq.client.Channel;
 import com.seniorinsight.notification.application.EnviarSosPorPushUseCase;
 import com.seniorinsight.notification.application.ExcluirTitularUseCase;
+import com.seniorinsight.notification.application.ProcessarEventoSinalUseCase;
 import com.seniorinsight.notification.application.ProcessarEventoSosUseCase;
 import com.seniorinsight.notification.domain.model.PedidoExclusao;
 import com.seniorinsight.notification.domain.model.TipoTitular;
@@ -48,7 +49,8 @@ class EventoListenerExclusaoTest {
     private final Channel channel = mock(Channel.class);
     private final TratadorPedidoExclusao tratador =
             new TratadorPedidoExclusao(new LeitorPedidoExclusao(), excluir, intervalo -> { }, TENTATIVAS, Duration.ZERO);
-    private final EventoListener listener = new EventoListener(mapper, processarSos, enviarSos, tratador);
+    private final EventoListener listener = new EventoListener(
+            mapper, processarSos, enviarSos, tratador, new LeitorEventoSinal(), mock(ProcessarEventoSinalUseCase.class));
     private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
     private final Logger logger = (Logger) LoggerFactory.getLogger(EventoListener.class);
 

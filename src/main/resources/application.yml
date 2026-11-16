@@ -50,7 +50,7 @@ notification:
     exchange: ${NOTIFICATION_RABBITMQ_EXCHANGE:si.events}
     queue: ${NOTIFICATION_RABBITMQ_QUEUE:notification.q}
     # Lista separada por vírgula: cada chave liga a fila à exchange.
-    routing-keys: ${NOTIFICATION_RABBITMQ_ROUTING_KEYS:sos.updated,lgpd.erasure.requested}
+    routing-keys: ${NOTIFICATION_RABBITMQ_ROUTING_KEYS:sos.updated,lgpd.erasure.requested,telemetry.signal.lost,telemetry.signal.recovered}
     dead-letter-exchange: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_EXCHANGE:notification.dlx}
     dead-letter-queue: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_QUEUE:notification.dlq}
     dead-letter-routing-key: ${NOTIFICATION_RABBITMQ_DEAD_LETTER_ROUTING_KEY:notification.dead}
@@ -78,5 +78,8 @@ notification:
       intervalo: ${NOTIFICATION_OUTBOX_RELAY_INTERVALO:1s}
       tamanho-lote: ${NOTIFICATION_OUTBOX_RELAY_TAMANHO_LOTE:100}
       timeout-confirmacao: ${NOTIFICATION_OUTBOX_RELAY_TIMEOUT_CONFIRMACAO:5s}
+  sinal:
+    intervalo-verificacao: ${NOTIFICATION_SINAL_INTERVALO_VERIFICACAO:30s}
+    fuso-horario: ${NOTIFICATION_SINAL_FUSO_HORARIO:America/Sao_Paulo}
   email:
     remetente: ${NOTIFICATION_EMAIL_REMETENTE:nao-responda@seniorinsight.app}
